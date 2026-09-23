@@ -37,7 +37,7 @@
   .parts { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-bottom: 8px; }
   .parts + .parts { margin-bottom: 10px; }
   .parts button { min-width: 130px; }
-  .parts[aria-label="だがっき"] button { min-height: 40px; padding: 4px 14px; }
+  .parts[aria-label="がっき"] button, .parts[aria-label="だがっき"] button { min-height: 40px; padding: 4px 14px; }
   .parts button small { display: block; font-size: 13px; color: #b8860b; letter-spacing: 1px; }
   .parts button.on { background: #1f6fd1; border-color: #1f6fd1; color: #fff; }
   .parts button.on small { color: #ffe45c; }
@@ -84,6 +84,11 @@
     <button type="button" role="tab" data-part="recorder1">リコーダー１<small>★</small></button>
     <button type="button" role="tab" data-part="recorder2">リコーダー２<small>★★</small></button>
   </div>
+  <div class="parts" role="tablist" aria-label="がっき">
+    <button type="button" role="tab" data-part="glockenspiel">てっきん</button>
+    <button type="button" role="tab" data-part="xylophone">もっきん</button>
+    <button type="button" role="tab" data-part="bass">低音楽器</button>
+  </div>
   <div class="parts" role="tablist" aria-label="だがっき">
     <button type="button" role="tab" data-part="tambourine">タンバリン</button>
     <button type="button" role="tab" data-part="snare">小だいこ</button>
@@ -128,6 +133,9 @@
     snare:     '小だいこ',
     bassdrum:  '大だいこ',
     cymbal:    'シンバル',
+    glockenspiel: 'てっきん',
+    xylophone: 'もっきん',
+    bass:      '低音楽器（バスキー）',
   };
   const audio = document.getElementById('audio');
   const score = document.getElementById('score');
