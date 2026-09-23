@@ -19,17 +19,25 @@
     font-family: "UD デジタル 教科書体 N-R", "UD Digi Kyokasho N-R", "BIZ UDPGothic", "Hiragino Sans", "Yu Gothic", sans-serif;
   }
 
+  .partnav { background: #fff; padding: 10px 16px 0; }
   .player {
     position: sticky; top: 0; z-index: 10;
     background: #fff;
     border-bottom: 2px solid var(--line);
-    padding: 10px 16px;
+    padding: 6px 16px 10px;
+  }
+  /* 広い画面ではパート切替も上に固定。せまい画面では楽譜が見えるように再生バーだけ固定 */
+  @media (min-width: 900px) {
+    .partnav { position: sticky; top: 0; z-index: 11; }
+    .player { top: var(--navh, 0px); }
   }
   .row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: center; }
   h1 { font-size: 20px; margin: 0 12px 0 0; white-space: nowrap; }
 
-  .parts { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-bottom: 10px; }
+  .parts { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-bottom: 8px; }
+  .parts + .parts { margin-bottom: 10px; }
   .parts button { min-width: 130px; }
+  .parts[aria-label="だがっき"] button { min-height: 40px; padding: 4px 14px; }
   .parts button small { display: block; font-size: 13px; color: #b8860b; letter-spacing: 1px; }
   .parts button.on { background: #1f6fd1; border-color: #1f6fd1; color: #fff; }
   .parts button.on small { color: #ffe45c; }
@@ -69,13 +77,22 @@
 </head>
 <body>
 
-<div class="player">
+<nav class="partnav" id="partnav">
   <div class="parts" role="tablist" aria-label="パート">
     <button type="button" role="tab" data-part="kenhamo1">けんハモ１<small>★★</small></button>
     <button type="button" role="tab" data-part="kenhamo2">けんハモ２<small>★★★</small></button>
     <button type="button" role="tab" data-part="recorder1">リコーダー１<small>★</small></button>
     <button type="button" role="tab" data-part="recorder2">リコーダー２<small>★★</small></button>
   </div>
+  <div class="parts" role="tablist" aria-label="だがっき">
+    <button type="button" role="tab" data-part="tambourine">タンバリン</button>
+    <button type="button" role="tab" data-part="snare">小だいこ</button>
+    <button type="button" role="tab" data-part="bassdrum">大だいこ</button>
+    <button type="button" role="tab" data-part="cymbal">シンバル</button>
+  </div>
+</nav>
+
+<div class="player">
   <div class="row">
     <h1>ミッキーマウス・マーチ</h1>
     <button id="play" type="button">▶ さいせい</button>
@@ -107,6 +124,10 @@
     kenhamo2:  'けんばんハーモニカ２',
     recorder1: 'リコーダー１',
     recorder2: 'リコーダー２',
+    tambourine: 'タンバリン',
+    snare:     '小だいこ',
+    bassdrum:  '大だいこ',
+    cymbal:    'シンバル',
   };
   const audio = document.getElementById('audio');
   const score = document.getElementById('score');
@@ -131,6 +152,7 @@
   const selectPart = part => {
     if (!PARTS[part]) part = 'kenhamo1';
     audio.pause();
+    play.textContent = '▶ さいせい';
     audio.src = part + '.mp3';
     audio.playbackRate = rate;
     score.src = part + '.png';
@@ -179,6 +201,11 @@
   document.addEventListener('keydown', e => {
     if (e.code === 'Space' && e.target.tagName !== 'INPUT') { e.preventDefault(); toggle(); }
   });
+
+  const nav = document.getElementById('partnav');
+  const setNavH = () => document.documentElement.style.setProperty('--navh', nav.offsetHeight + 'px');
+  new ResizeObserver(setNavH).observe(nav);
+  setNavH();
 
   selectPart(location.hash.slice(1));
 </script>
