@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ミッキーマウス・マーチ けんハモ</title>
+<title>ミッキーマウス・マーチ 練習</title>
 <style>
   :root {
     --ink: #222;
@@ -27,6 +27,12 @@
   }
   .row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: center; }
   h1 { font-size: 20px; margin: 0 12px 0 0; white-space: nowrap; }
+
+  .parts { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-bottom: 10px; }
+  .parts button { min-width: 130px; }
+  .parts button small { display: block; font-size: 13px; color: #b8860b; letter-spacing: 1px; }
+  .parts button.on { background: #1f6fd1; border-color: #1f6fd1; color: #fff; }
+  .parts button.on small { color: #ffe45c; }
 
   button {
     font: inherit; font-size: 18px; font-weight: bold;
@@ -56,6 +62,7 @@
   @media (max-width: 600px) {
     h1 { width: 100%; text-align: center; margin: 0 0 4px; font-size: 18px; }
     button { font-size: 16px; padding: 6px 10px; }
+    .parts button { min-width: 0; flex: 1 1 40%; }
     #play { min-width: 120px; font-size: 20px; }
   }
 </style>
@@ -63,6 +70,12 @@
 <body>
 
 <div class="player">
+  <div class="parts" role="tablist" aria-label="パート">
+    <button type="button" role="tab" data-part="kenhamo1">けんハモ１<small>★★</small></button>
+    <button type="button" role="tab" data-part="kenhamo2">けんハモ２<small>★★★</small></button>
+    <button type="button" role="tab" data-part="recorder1">リコーダー１<small>★</small></button>
+    <button type="button" role="tab" data-part="recorder2">リコーダー２<small>★★</small></button>
+  </div>
   <div class="row">
     <h1>ミッキーマウス・マーチ</h1>
     <button id="play" type="button">▶ さいせい</button>
@@ -82,17 +95,25 @@
 </div>
 
 <main>
-  <img class="score" src="score.png" alt="ミッキーマウス・マーチ けんばんハーモニカの がくふ">
+  <img class="score" id="score" src="kenhamo1.png" alt="">
   <p class="note">スペースキーでも さいせい・ていし できます</p>
 </main>
 
-<audio id="audio" src="audio.mp3" preload="auto"></audio>
+<audio id="audio" preload="auto"></audio>
 
 <script>
+  const PARTS = {
+    kenhamo1:  'けんばんハーモニカ１',
+    kenhamo2:  'けんばんハーモニカ２',
+    recorder1: 'リコーダー１',
+    recorder2: 'リコーダー２',
+  };
   const audio = document.getElementById('audio');
+  const score = document.getElementById('score');
   const play = document.getElementById('play');
   const bar = document.getElementById('bar');
   const time = document.getElementById('time');
+  let rate = 1;
   let dragging = false;
 
   const fmt = s => {
@@ -107,6 +128,26 @@
   };
   const toggle = () => { audio.paused ? audio.play() : audio.pause(); };
 
+  const selectPart = part => {
+    if (!PARTS[part]) part = 'kenhamo1';
+    audio.pause();
+    audio.src = part + '.mp3';
+    audio.playbackRate = rate;
+    score.src = part + '.png';
+    score.alt = 'ミッキーマウス・マーチ ' + PARTS[part] + ' の がくふ';
+    document.querySelectorAll('[data-part]').forEach(b => {
+      const on = b.dataset.part === part;
+      b.classList.toggle('on', on);
+      b.setAttribute('aria-selected', on);
+    });
+    if (location.hash !== '#' + part) history.replaceState(null, '', '#' + part);
+    update();
+  };
+
+  document.querySelectorAll('[data-part]').forEach(b => {
+    b.addEventListener('click', () => { selectPart(b.dataset.part); window.scrollTo(0, 0); });
+  });
+
   play.addEventListener('click', toggle);
   document.getElementById('top').addEventListener('click', () => { audio.currentTime = 0; update(); });
   document.getElementById('back').addEventListener('click', () => { audio.currentTime = Math.max(0, audio.currentTime - 5); update(); });
@@ -115,7 +156,7 @@
   audio.addEventListener('pause', () => { play.textContent = '▶ さいせい'; });
   audio.addEventListener('ended', () => { play.textContent = '▶ さいせい'; });
   audio.addEventListener('timeupdate', update);
-  audio.addEventListener('loadedmetadata', update);
+  audio.addEventListener('loadedmetadata', () => { audio.playbackRate = rate; update(); });
 
   bar.addEventListener('input', () => {
     dragging = true;
@@ -129,7 +170,8 @@
 
   document.querySelectorAll('[data-rate]').forEach(b => {
     b.addEventListener('click', () => {
-      audio.playbackRate = Number(b.dataset.rate);
+      rate = Number(b.dataset.rate);
+      audio.playbackRate = rate;
       document.querySelectorAll('[data-rate]').forEach(x => x.classList.toggle('on', x === b));
     });
   });
@@ -137,6 +179,8 @@
   document.addEventListener('keydown', e => {
     if (e.code === 'Space' && e.target.tagName !== 'INPUT') { e.preventDefault(); toggle(); }
   });
+
+  selectPart(location.hash.slice(1));
 </script>
 </body>
 </html>
