@@ -31,6 +31,14 @@
     .partnav { position: sticky; top: 0; z-index: 11; }
     .player { top: var(--navh, 0px); }
   }
+  .navtoggle { text-align: center; margin-bottom: 8px; }
+  .navtoggle button {
+    font-size: 15px; font-weight: normal; min-height: 36px; padding: 4px 16px;
+    border-radius: 18px; border-width: 1px; background: #fff; color: var(--sub);
+  }
+  .partnav.closed #partlist { display: none; }
+  .partnav.closed .navtoggle { margin-bottom: 0; }
+  .partnav.closed .navtoggle button { color: var(--ink); border-color: #1f6fd1; }
   .row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: center; }
   h1 { font-size: 20px; margin: 0 12px 0 0; white-space: nowrap; }
 
@@ -78,6 +86,8 @@
 <body>
 
 <nav class="partnav" id="partnav">
+  <div class="navtoggle"><button id="navtoggle" type="button" aria-expanded="true" aria-controls="partlist">▲ パートの ボタンを かくす</button></div>
+  <div id="partlist">
   <div class="parts" role="tablist" aria-label="パート">
     <button type="button" role="tab" data-part="kenhamo1">けんハモ１<small>★★</small></button>
     <button type="button" role="tab" data-part="kenhamo2">けんハモ２<small>★★★</small></button>
@@ -94,6 +104,7 @@
     <button type="button" role="tab" data-part="snare">小だいこ</button>
     <button type="button" role="tab" data-part="bassdrum">大だいこ</button>
     <button type="button" role="tab" data-part="cymbal">シンバル</button>
+  </div>
   </div>
 </nav>
 
@@ -144,6 +155,7 @@
   const time = document.getElementById('time');
   let rate = 1;
   let dragging = false;
+  let current = 'kenhamo1';
 
   const fmt = s => {
     if (!isFinite(s)) s = 0;
@@ -170,6 +182,8 @@
       b.classList.toggle('on', on);
       b.setAttribute('aria-selected', on);
     });
+    current = part;
+    updateToggle();
     if (location.hash !== '#' + part) history.replaceState(null, '', '#' + part);
     update();
   };
@@ -214,6 +228,23 @@
   const setNavH = () => document.documentElement.style.setProperty('--navh', nav.offsetHeight + 'px');
   new ResizeObserver(setNavH).observe(nav);
   setNavH();
+
+  // パートのボタンを かくす／だす（えらんだ状態は この端末に おぼえておく）
+  const navToggle = document.getElementById('navtoggle');
+  function updateToggle() {
+    const closed = nav.classList.contains('closed');
+    const btn = document.querySelector('[data-part="' + current + '"]');
+    const name = btn ? btn.firstChild.textContent.trim() : '';
+    navToggle.textContent = closed ? '▼ パートを えらぶ（いま：' + name + '）' : '▲ パートの ボタンを かくす';
+    navToggle.setAttribute('aria-expanded', !closed);
+  }
+  const setClosed = closed => {
+    nav.classList.toggle('closed', closed);
+    updateToggle();
+    try { localStorage.setItem('partsClosed', closed ? '1' : '0'); } catch (e) {}
+  };
+  navToggle.addEventListener('click', () => setClosed(!nav.classList.contains('closed')));
+  try { if (localStorage.getItem('partsClosed') === '1') nav.classList.add('closed'); } catch (e) {}
 
   selectPart(location.hash.slice(1));
 </script>
