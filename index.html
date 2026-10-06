@@ -150,6 +150,15 @@
     background: #fff; cursor: pointer; max-width: 100%;
   }
   @media (max-width: 600px) { .partsel { font-size: 16px; min-height: 40px; } }
+  /* 5びょう ボタン：たて向きは 3行、横向きは 1行 */
+  .vside span { display: block; }
+  /* 横向きの 画面：楽譜を 左、どうがを 右に ならべる */
+  body.videomode.landscape .videoarea { display: flex; align-items: flex-start; gap: 16px; max-width: none; }
+  body.landscape .strip { flex: 0 0 auto; margin: 0; }
+  body.landscape .vrow { flex: 1 1 0; min-width: 0; flex-wrap: wrap; margin-top: 0; gap: 8px; }
+  body.landscape .vrow video { order: 0; flex: 1 1 100%; width: 100%; max-width: 100%; }
+  body.landscape .vside { order: 1; flex: 1 1 40%; min-width: 0; min-height: 48px; padding: 6px 8px; }
+  body.landscape .vside span { display: inline; }
 </style>
 </head>
 <body>
@@ -217,9 +226,9 @@
       </div>
     </div>
     <div class="vrow">
-      <button type="button" class="vside" id="vback">⏪<br>5びょう<br>もどる</button>
+      <button type="button" class="vside" id="vback"><span>⏪</span> <span>5びょう</span> <span>もどる</span></button>
       <video id="video" playsinline preload="metadata"></video>
-      <button type="button" class="vside" id="vfwd">⏩<br>5びょう<br>すすむ</button>
+      <button type="button" class="vside" id="vfwd"><span>⏩</span> <span>5びょう</span> <span>すすむ</span></button>
     </div>
   </div>
   <p class="note">がくふを タッチすると、そこから さいせい します。スペースキーでも さいせい・ていし できます</p>
@@ -423,16 +432,29 @@
   // どうがの 上に 楽譜を 2段ぶんの 高さで 表示（いまの 段が 上に くるよう 自動で 進む。手で スクロールも できる）
   const rowsOf = sync => [...new Set(sync.boxes.map(b => b[1]))].sort((a, b) => a - b);
   // 楽譜（2段ぶん）と どうがが、ページを スクロールしなくても 画面に おさまるように 大きさを 決める
+  //   横向きの 画面：左に 楽譜（何段も 見える）、右に どうが
+  //   たて向きの 画面：上に 楽譜（2段ぶん）、下に どうが
   function placeStrip(sync, y) {
     const rows = rowsOf(sync);
-    const W = sync.img[0];
+    const [W, H] = sync.img;
     const pitch = rows.length > 1 ? rows[1] - rows[0] : sync.boxes[0][3];
-    const avail = window.innerHeight - headerBottom() - 36;   // 操作部分の 下に 使える 高さ
-    const k = Math.min(strip.parentElement.clientWidth / W, (avail * 0.48) / (pitch * 2 + 10));
-    const stripH = Math.round((pitch * 2 + 10) * k);
-    strip.style.width = Math.round(W * k) + 'px';
-    strip.style.height = stripH + 'px';
-    video.style.maxHeight = Math.max(120, avail - stripH - 12) + 'px';
+    const land = window.innerWidth > window.innerHeight * 1.15 && window.innerWidth >= 700;
+    document.body.classList.toggle('landscape', land);
+    const avail = window.innerHeight - headerBottom() - (land ? 26 : 36);   // 操作部分の 下に 使える 高さ
+    const areaW = strip.parentElement.clientWidth;
+    let k;
+    if (land) {
+      k = (areaW * 0.56) / W;
+      strip.style.width = Math.round(W * k) + 'px';
+      strip.style.height = Math.min(avail, Math.round(H * k)) + 'px';
+      video.style.maxHeight = Math.max(120, avail - 64) + 'px';   // 下に 5びょう ボタンの 行
+    } else {
+      k = Math.min(areaW / W, (avail * 0.48) / (pitch * 2 + 10));
+      const stripH = Math.round((pitch * 2 + 10) * k);
+      strip.style.width = Math.round(W * k) + 'px';
+      strip.style.height = stripH + 'px';
+      video.style.maxHeight = Math.max(120, avail - stripH - 12) + 'px';
+    }
     // 段が かわったら その段まで 自動で スクロール（手で スクロールも できる）
     strip.scrollTo({ top: Math.max(0, (y - 5) * k), behavior: 'smooth' });
   }
