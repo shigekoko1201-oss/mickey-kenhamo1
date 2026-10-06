@@ -85,6 +85,17 @@
     font-size: 14px; font-weight: bold; padding: 1px 8px; border-radius: 10px; white-space: nowrap;
   }
   .hl span:empty { display: none; }
+  .mode { margin-top: 8px; }
+  .mode[hidden] { display: none; }
+  .mode button { font-size: 16px; min-height: 40px; padding: 4px 14px; }
+  .mode button.on { background: #1f6fd1; border-color: #1f6fd1; color: #fff; }
+  /* おてほん どうが：上に 楽譜（2段）、下に どうが */
+  .videoarea { display: none; max-width: 1100px; margin: 0 auto; }
+  body.videomode .videoarea { display: block; }
+  body.videomode .scorewrap { display: none; }
+  .strip { position: relative; overflow: hidden; background: #fff; border: 2px solid var(--line); border-radius: 10px; margin: 0 auto; max-width: 100%; }
+  .stripin { position: relative; transition: transform .45s ease; }
+  .videoarea video { display: block; max-width: 100%; max-height: 50vh; margin: 10px auto 0; background: #000; border-radius: 10px; }
   .note { text-align: center; color: var(--sub); font-size: 14px; margin-top: 16px; }
 
   @media (max-width: 600px) {
@@ -133,6 +144,10 @@
       <button type="button" data-rate="1" class="on">ふつう</button>
     </div>
   </div>
+  <div class="row mode" id="modebox" role="group" aria-label="みる もの" hidden>
+    <button type="button" data-mode="audio" class="on">🎵 がくふと おんげん</button>
+    <button type="button" data-mode="video">🎬 おてほん どうが</button>
+  </div>
   <div class="seek">
     <input id="bar" type="range" min="0" max="100" step="0.1" value="0" aria-label="いまの いち">
     <div class="time" id="time">0:00 / 0:00</div>
@@ -143,6 +158,15 @@
   <div class="scorewrap">
     <img class="score" id="score" alt="">
     <div class="hl" id="hl"><span id="hlcount"></span></div>
+  </div>
+  <div class="videoarea">
+    <div class="strip" id="strip">
+      <div class="stripin" id="stripin">
+        <img class="score" id="stripimg" alt="">
+        <div class="hl" id="hl2"><span id="hlcount2"></span></div>
+      </div>
+    </div>
+    <video id="video" playsinline preload="metadata"></video>
   </div>
   <p class="note">スペースキーでも さいせい・ていし できます</p>
 </main>
@@ -179,14 +203,24 @@
     bassdrum: {"img":[1653,1480],"t0":0.055,"measure":1.252871,"ev":[[0,0],[1,1],[2,2],[3,3],[4,4],[5,5],[6,6],[7,7],[8,8],[9,16],[10,17],[11,18],[12,19],[13,20],[14,21],[15,22],[16,23],[17,24],[18,25],[19,26],[20,27],[21,28],[22,29],[23,30],[24,31],[25,32],[26,33],[27,34],[28,35],[29,36],[30,37],[31,38],[32,39],[33,40],[34,41],[35,42],[36,43],[37,44],[38,45],[39,46],[40,47],[8,48],[9,56],[10,57],[11,58],[12,59],[13,60],[14,61],[15,62],[16,63],[17,64],[18,65],[19,66],[20,67],[21,68],[22,69],[23,70],[24,71],[25,72],[26,73],[27,74],[28,75],[29,76],[30,77],[41,78],[42,79],[43,80],[44,81],[45,82],[46,83],[47,84]],"boxes":[[187,230,195,153],[382,230,117,153],[499,230,117,153],[616,230,117,153],[734,230,117,153],[851,230,117,153],[968,230,117,153],[1086,230,115,153],[1201,230,218,153],[1419,230,117,153],[118,498,172,153],[290,498,125,153],[414,498,125,153],[539,498,125,153],[664,498,125,153],[788,498,125,153],[913,498,125,153],[1037,498,125,153],[1162,498,125,153],[1287,498,125,153],[1411,498,125,153],[118,767,170,153],[288,767,123,153],[412,767,123,153],[535,767,131,153],[666,767,123,153],[789,767,123,153],[912,767,123,153],[1035,767,123,153],[1159,767,123,153],[1282,767,131,153],[1413,767,123,153],[118,1036,171,153],[289,1036,124,153],[412,1036,124,153],[536,1036,124,153],[660,1036,124,153],[784,1036,124,153],[907,1036,124,153],[1031,1036,124,153],[1155,1036,147,153],[1302,1036,110,153],[1412,1036,124,153],[118,1305,277,153],[395,1305,230,153],[624,1305,300,153],[924,1305,300,153],[1224,1305,312,153]]},
     cymbal: {"img":[1653,1260],"t0":0.054,"measure":1.307332,"ev":[[0,0],[1,8],[2,16],[3,17],[4,18],[5,19],[6,20],[7,21],[8,22],[9,23],[10,24],[11,25],[12,26],[13,27],[14,28],[15,29],[16,30],[17,31],[18,32],[19,33],[20,34],[21,35],[22,36],[23,37],[24,38],[25,39],[26,40],[27,44],[1,48],[2,56],[3,57],[4,58],[5,59],[6,60],[7,61],[8,62],[9,63],[10,64],[11,65],[12,66],[13,67],[14,68],[15,69],[16,70],[17,71],[18,72],[19,73],[20,74],[21,75],[22,76],[23,77],[28,78],[29,79],[30,80],[31,81],[32,82],[33,83],[34,84]],"boxes":[[187,230,268,153],[455,230,226,153],[681,230,122,153],[803,230,122,153],[925,230,122,153],[1047,230,122,153],[1169,230,122,153],[1292,230,122,153],[1414,230,122,153],[118,512,189,153],[307,512,111,153],[418,512,120,153],[538,512,111,153],[649,512,120,153],[769,512,111,153],[880,512,111,153],[991,512,142,153],[1133,512,149,153],[1283,512,142,153],[1425,512,111,153],[118,795,160,153],[278,795,113,153],[390,795,113,153],[503,795,120,153],[623,795,113,153],[736,795,113,153],[849,795,159,153],[1008,795,183,153],[1191,795,113,153],[1304,795,120,153],[1423,795,113,153],[118,1077,362,153],[480,1077,315,153],[795,1077,315,153],[1110,1077,426,153]]},
   };
+  // おてほん どうが（けんハモ）。offset: 動画の 時刻 ＝ 音源の 時刻 ＋ offset（動画の 音と 音源を 照らし合わせて 計測）
+  const VIDEOS = {
+    kenhamo1: { src: 'kenhamo1_video.mp4', offset: 0.42 },
+    kenhamo2: { src: 'kenhamo2_video.mp4', offset: 0.225 },
+  };
   const audio = document.getElementById('audio');
+  const video = document.getElementById('video');
   const score = document.getElementById('score');
   const play = document.getElementById('play');
   const bar = document.getElementById('bar');
   const time = document.getElementById('time');
+  const modeBox = document.getElementById('modebox');
   let rate = 1;
   let dragging = false;
   let current = 'kenhamo1';
+  let mode = 'audio';          // 'audio'（がくふと おんげん）か 'video'（おてほん どうが）
+  let media = audio;           // いま 再生に つかっている 要素
+  let wantMode = 'audio';      // ボタンで えらんだ モード（どうがの ない パートから もどったときに つかう）
 
   const fmt = s => {
     if (!isFinite(s)) s = 0;
@@ -194,15 +228,36 @@
     return m + ':' + String(r).padStart(2, '0');
   };
   const update = () => {
-    const d = audio.duration || 0;
-    if (!dragging) bar.value = d ? (audio.currentTime / d) * 100 : 0;
-    time.textContent = fmt(audio.currentTime) + ' / ' + fmt(d);
+    const d = media.duration || 0;
+    if (!dragging) bar.value = d ? (media.currentTime / d) * 100 : 0;
+    time.textContent = fmt(media.currentTime) + ' / ' + fmt(d);
   };
-  const toggle = () => { audio.paused ? audio.play() : audio.pause(); };
+  const toggle = () => { media.paused ? media.play() : media.pause(); };
+
+  const setMode = m => {
+    if (m === 'video' && !VIDEOS[current]) m = 'audio';
+    audio.pause();
+    video.pause();
+    play.textContent = '▶ さいせい';
+    mode = m;
+    media = m === 'video' ? video : audio;
+    if (m === 'video') {
+      const v = VIDEOS[current];
+      if (!video.src.endsWith(v.src)) video.src = v.src;
+      stripImg.src = current + '.png';
+    }
+    media.playbackRate = rate;
+    document.body.classList.toggle('videomode', m === 'video');
+    modeBox.querySelectorAll('[data-mode]').forEach(b => b.classList.toggle('on', b.dataset.mode === m));
+    lastBox = -1;
+    lastRow = null;
+    update();
+  };
 
   const selectPart = part => {
     if (!PARTS[part]) part = 'kenhamo1';
     audio.pause();
+    video.pause();
     play.textContent = '▶ さいせい';
     audio.src = part + '.mp3';
     audio.playbackRate = rate;
@@ -214,6 +269,8 @@
       b.setAttribute('aria-selected', on);
     });
     current = part;
+    modeBox.hidden = !VIDEOS[part];
+    setMode(wantMode);
     updateToggle();
     if (location.hash !== '#' + part) history.replaceState(null, '', '#' + part);
     update();
@@ -222,31 +279,37 @@
   document.querySelectorAll('[data-part]').forEach(b => {
     b.addEventListener('click', () => { selectPart(b.dataset.part); window.scrollTo(0, 0); });
   });
+  modeBox.querySelectorAll('[data-mode]').forEach(b => {
+    b.addEventListener('click', () => { wantMode = b.dataset.mode; setMode(wantMode); window.scrollTo(0, 0); });
+  });
 
   play.addEventListener('click', toggle);
-  document.getElementById('top').addEventListener('click', () => { audio.currentTime = 0; update(); });
-  document.getElementById('back').addEventListener('click', () => { audio.currentTime = Math.max(0, audio.currentTime - 5); update(); });
+  document.getElementById('top').addEventListener('click', () => { media.currentTime = 0; update(); });
+  document.getElementById('back').addEventListener('click', () => { media.currentTime = Math.max(0, media.currentTime - 5); update(); });
 
-  audio.addEventListener('play', () => { play.textContent = '⏸ とめる'; });
-  audio.addEventListener('pause', () => { play.textContent = '▶ さいせい'; });
-  audio.addEventListener('ended', () => { play.textContent = '▶ さいせい'; });
-  audio.addEventListener('timeupdate', update);
-  audio.addEventListener('loadedmetadata', () => { audio.playbackRate = rate; update(); });
+  for (const el of [audio, video]) {
+    el.addEventListener('play', () => { if (el === media) play.textContent = '⏸ とめる'; });
+    el.addEventListener('pause', () => { if (el === media) play.textContent = '▶ さいせい'; });
+    el.addEventListener('ended', () => { if (el === media) play.textContent = '▶ さいせい'; });
+    el.addEventListener('timeupdate', () => { if (el === media) update(); });
+    el.addEventListener('loadedmetadata', () => { el.playbackRate = rate; if (el === media) update(); });
+  }
+  video.addEventListener('click', toggle);
 
   bar.addEventListener('input', () => {
     dragging = true;
-    const d = audio.duration || 0;
+    const d = media.duration || 0;
     time.textContent = fmt(d * bar.value / 100) + ' / ' + fmt(d);
   });
   bar.addEventListener('change', () => {
     dragging = false;
-    if (audio.duration) audio.currentTime = audio.duration * bar.value / 100;
+    if (media.duration) media.currentTime = media.duration * bar.value / 100;
   });
 
   document.querySelectorAll('[data-rate]').forEach(b => {
     b.addEventListener('click', () => {
       rate = Number(b.dataset.rate);
-      audio.playbackRate = rate;
+      media.playbackRate = rate;
       document.querySelectorAll('[data-rate]').forEach(x => x.classList.toggle('on', x === b));
     });
   });
@@ -280,15 +343,53 @@
   // 演奏中の 小節を 赤く かこむ
   const hl = document.getElementById('hl');
   const hlCount = document.getElementById('hlcount');
+  const strip = document.getElementById('strip');
+  const stripIn = document.getElementById('stripin');
+  const stripImg = document.getElementById('stripimg');
+  const hl2 = document.getElementById('hl2');
+  const hlCount2 = document.getElementById('hlcount2');
   const headerBottom = () => document.querySelector('.player').getBoundingClientRect().bottom;
   // 赤い わくを 音より 少し 早めに 動かす 秒数（遅く 感じたら 大きく、早すぎたら 小さく）
   const LEAD = 0.2;
   let lastBox = -1, lastRow = null, lastPart = null;
+
+  // どうがの 上に 楽譜を 2段ずつ 流す（いまの 段と 次の 段）
+  const rowsOf = sync => [...new Set(sync.boxes.map(b => b[1]))].sort((a, b) => a - b);
+  // 画面の 高さに 楽譜（2段）と どうがが 両方 おさまるように 大きさを 決める
+  function placeStrip(sync, y) {
+    const rows = rowsOf(sync);
+    const W = sync.img[0];
+    const pitch = rows.length > 1 ? rows[1] - rows[0] : sync.boxes[0][3];
+    const avail = window.innerHeight - headerBottom() - 40;
+    const k = Math.min(strip.parentElement.clientWidth / W, (avail * 0.45) / (pitch * 2 + 10));
+    const stripH = Math.round((pitch * 2 + 10) * k);
+    strip.style.width = Math.round(W * k) + 'px';
+    strip.style.height = stripH + 'px';
+    video.style.maxHeight = Math.max(160, avail - stripH - 10) + 'px';
+    stripIn.style.transform = 'translateY(' + (-(y - 5) * k) + 'px)';
+  }
+  let layoutKey = '';
+
   function drawHighlight() {
     const sync = SYNC[current];
-    const t = audio.currentTime;
-    if (!sync || (audio.paused && t === 0) || audio.ended) { hl.classList.remove('show'); lastBox = -1; return; }
-    const u = Math.max(0, (t + LEAD * audio.playbackRate - sync.t0) / sync.measure);
+    if (!sync) return;
+    const isVideo = mode === 'video';
+    if (isVideo) {
+      // 画面の 大きさや 上の ボタンの 高さが かわったら、楽譜と どうがの 大きさを 決めなおす
+      const key = window.innerWidth + 'x' + window.innerHeight + 'x' + Math.round(headerBottom());
+      if (key !== layoutKey) { layoutKey = key; lastRow = null; }
+    }
+    const box = isVideo ? hl2 : hl;
+    const count = isVideo ? hlCount2 : hlCount;
+    const t = isVideo ? media.currentTime - VIDEOS[current].offset : media.currentTime;
+    if ((media.paused && media.currentTime === 0) || media.ended) {
+      hl.classList.remove('show');
+      hl2.classList.remove('show');
+      lastBox = -1;
+      if (isVideo && lastRow !== 'start') { placeStrip(sync, rowsOf(sync)[0]); lastRow = 'start'; }
+      return;
+    }
+    const u = Math.max(0, (t + LEAD * media.playbackRate - sync.t0) / sync.measure);
     let i = 0;
     while (i + 1 < sync.ev.length && sync.ev[i + 1][1] <= u) i++;
     const [bi, start] = sync.ev[i];
@@ -296,22 +397,27 @@
     const [x, y, w, h] = sync.boxes[bi];
     const [W, H] = sync.img;
     if (bi !== lastBox || current !== lastPart) {
-      hl.style.left = (x / W * 100) + '%';
-      hl.style.top = (y / H * 100) + '%';
-      hl.style.width = (w / W * 100) + '%';
-      hl.style.height = (h / H * 100) + '%';
-      hl.classList.add('show');
+      (isVideo ? hl : hl2).classList.remove('show');
+      box.style.left = (x / W * 100) + '%';
+      box.style.top = (y / H * 100) + '%';
+      box.style.width = (w / W * 100) + '%';
+      box.style.height = (h / H * 100) + '%';
+      box.classList.add('show');
       lastBox = bi;
       lastPart = current;
     }
-    hlCount.textContent = len > 1 ? 'やすみ ' + Math.min(len, Math.floor(u - start) + 1) + ' / ' + len : '';
-    // 段が かわったら、赤い わくが 見える 位置まで スクロール
-    if (!audio.paused && y !== lastRow) {
+    count.textContent = len > 1 ? 'やすみ ' + Math.min(len, Math.floor(u - start) + 1) + ' / ' + len : '';
+    if (y !== lastRow) {
       lastRow = y;
-      const r = hl.getBoundingClientRect();
-      const top = headerBottom();
-      if (r.top < top + 8 || r.bottom > window.innerHeight - 8) {
-        window.scrollBy({ top: r.top - top - 40, behavior: 'smooth' });
+      if (isVideo) {
+        placeStrip(sync, y);
+      } else if (!media.paused) {
+        // 段が かわったら、赤い わくが 見える 位置まで スクロール
+        const r = hl.getBoundingClientRect();
+        const top = headerBottom();
+        if (r.top < top + 8 || r.bottom > window.innerHeight - 8) {
+          window.scrollBy({ top: r.top - top - 40, behavior: 'smooth' });
+        }
       }
     }
   }
