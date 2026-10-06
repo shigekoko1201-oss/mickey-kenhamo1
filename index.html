@@ -93,8 +93,8 @@
   .videoarea { display: none; max-width: 1100px; margin: 0 auto; }
   body.videomode .videoarea { display: block; }
   body.videomode .scorewrap { display: none; }
-  .strip { position: relative; overflow: hidden; background: #fff; border: 2px solid var(--line); border-radius: 10px; margin: 0 auto; max-width: 100%; }
-  .stripin { position: relative; transition: transform .45s ease; }
+  .strip { position: relative; overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; background: #fff; border: 2px solid var(--line); border-radius: 10px; margin: 0 auto; max-width: 100%; }
+  .stripin { position: relative; }
   .videoarea video { display: block; max-width: 100%; max-height: 50vh; margin: 10px auto 0; background: #000; border-radius: 10px; }
   .scorewrap .score, .stripin .score { cursor: pointer; }
   .note { text-align: center; color: var(--sub); font-size: 14px; margin-top: 16px; }
@@ -418,7 +418,7 @@
   const LEAD = 0.2;
   let lastBox = -1, lastRow = null, lastPart = null;
 
-  // どうがの 上に 楽譜を 2段ずつ 流す（いまの 段と 次の 段）
+  // どうがの 上に 楽譜を 2段ぶんの 高さで 表示（いまの 段が 上に くるよう 自動で 進む。手で スクロールも できる）
   const rowsOf = sync => [...new Set(sync.boxes.map(b => b[1]))].sort((a, b) => a - b);
   // 画面の 高さに 楽譜（2段）と どうがが 両方 おさまるように 大きさを 決める
   function placeStrip(sync, y) {
@@ -431,7 +431,8 @@
     strip.style.width = Math.round(W * k) + 'px';
     strip.style.height = stripH + 'px';
     video.style.maxHeight = Math.max(160, avail - stripH - 10) + 'px';
-    stripIn.style.transform = 'translateY(' + (-(y - 5) * k) + 'px)';
+    // 段が かわったら その段まで 自動で スクロール（手で スクロールも できる）
+    strip.scrollTo({ top: Math.max(0, (y - 5) * k), behavior: 'smooth' });
   }
   let layoutKey = '';
 
