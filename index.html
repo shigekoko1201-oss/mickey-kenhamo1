@@ -95,7 +95,7 @@
   body.videomode .scorewrap { display: none; }
   .strip { position: relative; overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; background: #fff; border: 2px solid var(--line); border-radius: 10px; margin: 0 auto; max-width: 100%; }
   .stripin { position: relative; }
-  .videoarea video { display: block; max-width: 100%; max-height: 50vh; margin: 10px auto 0; background: #000; border-radius: 10px; }
+  .videoarea video { display: block; max-width: 100%; width: 100%; margin: 10px auto 0; background: #000; border-radius: 10px; }
   .scorewrap .score, .stripin .score { cursor: pointer; }
   .note { text-align: center; color: var(--sub); font-size: 14px; margin-top: 16px; }
 
@@ -420,17 +420,13 @@
 
   // どうがの 上に 楽譜を 2段ぶんの 高さで 表示（いまの 段が 上に くるよう 自動で 進む。手で スクロールも できる）
   const rowsOf = sync => [...new Set(sync.boxes.map(b => b[1]))].sort((a, b) => a - b);
-  // 画面の 高さに 楽譜（2段）と どうがが 両方 おさまるように 大きさを 決める
+  // 楽譜は 横はば いっぱい、高さは 2段ぶん（画面への 収まりは 調整しない。大きさは ブラウザの 拡大で）
   function placeStrip(sync, y) {
     const rows = rowsOf(sync);
     const W = sync.img[0];
     const pitch = rows.length > 1 ? rows[1] - rows[0] : sync.boxes[0][3];
-    const avail = window.innerHeight - headerBottom() - 40;
-    const k = Math.min(strip.parentElement.clientWidth / W, (avail * 0.45) / (pitch * 2 + 10));
-    const stripH = Math.round((pitch * 2 + 10) * k);
-    strip.style.width = Math.round(W * k) + 'px';
-    strip.style.height = stripH + 'px';
-    video.style.maxHeight = Math.max(160, avail - stripH - 10) + 'px';
+    const k = strip.clientWidth / W;
+    strip.style.height = Math.round((pitch * 2 + 10) * k) + 'px';
     // 段が かわったら その段まで 自動で スクロール（手で スクロールも できる）
     strip.scrollTo({ top: Math.max(0, (y - 5) * k), behavior: 'smooth' });
   }
@@ -441,8 +437,8 @@
     if (!sync) return;
     const isVideo = mode === 'video';
     if (isVideo) {
-      // 画面の 大きさや 上の ボタンの 高さが かわったら、楽譜と どうがの 大きさを 決めなおす
-      const key = window.innerWidth + 'x' + window.innerHeight + 'x' + Math.round(headerBottom());
+      // 画面の 大きさが かわったら、楽譜の 高さと 位置を 決めなおす
+      const key = window.innerWidth + 'x' + window.innerHeight;
       if (key !== layoutKey) { layoutKey = key; lastRow = null; }
     }
     const box = isVideo ? hl2 : hl;
